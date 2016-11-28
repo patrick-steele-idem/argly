@@ -33,6 +33,81 @@ function getTargetPropertyForOption(option, arg) {
     return targetProperty;
 }
 
+var strToBool = {
+    '1': true,
+    'true': true,
+    'yes': true,
+    'y': true,
+    '0': false,
+    'false': false,
+    'no': false,
+    'n': false
+};
+
+var defaultTypeHandlers = {
+    'string': function(defaultVal) {
+        if (typeof defaultVal === 'string') {
+            return defaultVal;
+        }
+    },
+    'boolean': function(defaultVal) {
+        if (typeof defaultVal === 'boolean') {
+            return defaultVal;
+        } else if (typeof defaultVal === 'string') {
+            defaultVal = defaultVal.toLowerCase();
+
+            var boolConversion = strToBool[defaultVal];
+
+            if (typeof boolConversion !== 'undefined') {
+                return boolConversion;
+            }
+        }
+    },
+    'int': function(defaultVal) {
+        if (typeof defaultVal === 'number' || typeof defaultVal === 'string') {
+            return parseInt(defaultVal, 10);
+        }
+    },
+    'integer': function(defaultVal) {
+        if (typeof defaultVal === 'number' || typeof defaultVal === 'string') {
+            return parseInt(defaultVal, 10);
+        }
+    },
+    'number': function(defaultVal) {
+        if (typeof defaultVal === 'number' || typeof defaultVal === 'string') {
+            return parseFloat(defaultVal);
+        }
+    }
+};
+
+function handleDefaults(state, onError) {
+    state.options.getOptions().forEach(function(option) {
+        var targetProperty = option.targetProperty;
+        var defaultValue = option.defaultValue;
+
+        // Skip options that already have a value or do not have a default
+        if (typeof state.result[targetProperty] !== 'undefined' ||
+            typeof defaultValue === 'undefined') {
+            return;
+        }
+
+        var handler;
+        // If the option has a type and it is not a complex type, we validate
+        // that the default is the type we expect
+        if (option.type && (handler = defaultTypeHandlers[option.type])) {
+            var result = handler(defaultValue);
+
+            if (typeof result === 'undefined') {
+                return onError("Invalid default value '" + defaultValue + "' for target property '" + targetProperty + "'");
+            }
+
+            state.result[option.targetProperty] = result;
+        } else {
+            state.result[option.targetProperty] = option.defaultValue;
+        }
+    });
+}
+
 function Options(config) {
     this._lookup = {};
     this._options = [];
@@ -102,6 +177,10 @@ Options.prototype = {
         return this._options.map(function(optionConfig) {
             return optionConfig.targetProperty;
         });
+    },
+
+    getOptions: function() {
+        return this._options;
     },
 
     get: function(optionName) {
@@ -253,7 +332,6 @@ Parser.prototype = {
             state.option = null;
         }
 
-
         var onError = this._onError ? this._onError.bind(this) : DEFAULT_ON_ERROR;
 
         function addValue(arg) {
@@ -399,6 +477,7 @@ Parser.prototype = {
         }
 
         finishLastOption();
+        handleDefaults(state, onError);
 
         // Run the validators
         try {
@@ -410,9 +489,6 @@ Parser.prototype = {
         }
 
         return state.result;
-
-
-
     }
 };
 
