@@ -300,17 +300,6 @@ var result = require('argly')
 * Support equal separator: `--hello=world`
 * Support number arg: `-x256`
 * Detect repeated declared options and throw an error
-* Add support for a default value
-
-```javascript
-var parser = require('../')
-    .createParser({
-        '--foo -f': {
-            type: 'boolean',
-            defaultValue: true
-        }
-    });
-```
 
 # Additional Reading
 

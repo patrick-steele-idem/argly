@@ -198,5 +198,110 @@ describe('raptor-args' , function() {
 
         expect(parsed.noConflict).to.equal('myapp');
     });
-});
 
+    it('should allow default values', function() {
+        var parser = require('../')
+            .createParser({
+                '--foo -f': {
+                    type: 'string',
+                    defaultValue: 'bar'
+                },
+                '--bar -b': {
+                    type: 'int',
+                    defaultValue: 5
+                },
+                '--hello -h': {
+                    type: 'string',
+                    defaultValue: 'hello world'
+                }
+            });
+
+        var parsed = parser.parse('--foo bor'.split(/\s/));
+
+        expect(parsed).to.deep.equal({
+            foo: 'bor',
+            bar: 5,
+            hello: 'hello world'
+        });
+    });
+
+    it('should allow default values use pseudo defaults', function() {
+        var parser = require('../')
+            .createParser({
+                '--foo -f': {
+                    type: 'string'
+                },
+                '--test -t': {
+                    type: 'boolean',
+                    defaultValue: 'y'
+                }
+            });
+
+        var parsed = parser.parse('--foo bar'.split(/\s/));
+
+        expect(parsed).to.deep.equal({
+            foo: 'bar',
+            test: true
+        });
+    });
+
+    it('should receive error when default value is incorrect type', function() {
+        var parser = require('../')
+            .createParser({
+                '--foo -f': {
+                    type: 'string',
+                },
+                '--bar -b': {
+                    type: 'int',
+                    defaultValue: true
+                }
+            });
+
+        expect(function() {
+            parser.parse('--foo bor'.split(/\s/));
+        }).to.throw(/Invalid default value \'true\' for target property \'bar\'/);
+    });
+
+    it('should allow default value using complex types', function() {
+        var parser = require('../')
+            .createParser({
+                '--minify -m': 'boolean',
+                '--hello': 'string',
+                '--plugins': {
+                    options: {
+                        '--module -m *': 'string',
+                        '-*': null
+                    },
+                    defaultValue: [
+                        {
+                            module: 'foo',
+                            x: true,
+                            y: true
+                        },
+                        {
+                            module: 'bar',
+                            z: 'hello'
+                        }
+                    ]
+                }
+            });
+
+        var parsed = parser.parse('--minify --plugins [ foo -x -y ] [ bar -z hello ] --hello world'.split(/\s/));
+
+        expect(parsed).to.deep.equal({
+            minify: true,
+            hello: 'world',
+            plugins: [
+                {
+                    module: 'foo',
+                    x: true,
+                    y: true
+                },
+                {
+                    module: 'bar',
+                    z: 'hello'
+                }
+            ]
+        });
+    });
+});
