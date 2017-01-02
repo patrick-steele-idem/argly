@@ -163,7 +163,13 @@ Options.prototype = {
                 }
 
                 for (var i = 0, len = aliases.length; i < len; i++) {
-                    this._lookup[aliases[i]] = optionConfig;
+                    var alias = aliases[i];
+
+                    if (this._lookup[alias]) {
+                        throw new Error("Duplicate option provided '" + alias + "'");
+                    }
+
+                    this._lookup[alias] = optionConfig;
                 }
             }
         }

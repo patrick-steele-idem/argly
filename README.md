@@ -299,7 +299,6 @@ var result = require('argly')
 
 * Support equal separator: `--hello=world`
 * Support number arg: `-x256`
-* Detect repeated declared options and throw an error
 
 # Additional Reading
 

@@ -304,4 +304,24 @@ describe('raptor-args' , function() {
             ]
         });
     });
+
+    it('should throw error if repeated option provided in parser', function() {
+        expect(function() {
+            require('../')
+                .createParser({
+                    '--minify -m': 'boolean',
+                    '--minify -t': 'boolean'
+                });
+        }).to.throw(/Duplicate option provided \'--minify\'/);
+    });
+
+    it('should throw error if repeated alias provided in parser', function() {
+        expect(function() {
+            require('../')
+                .createParser({
+                    '--minify -m': 'boolean',
+                    '--test -m': 'boolean'
+                });
+        }).to.throw(/Duplicate option provided \'-m\'/);
+    });
 });
