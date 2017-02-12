@@ -225,6 +225,53 @@ describe('raptor-args' , function() {
         });
     });
 
+    it('should allow default values as functions', function() {
+        var parser = require('../')
+            .createParser({
+                '--foo -f': {
+                    type: 'string',
+                    defaultValue: function() {
+                        return 'bar';
+                    }
+                },
+                '--bar -b': {
+                    type: 'string'
+                }
+            });
+
+        var parsed = parser.parse('--bar test'.split(/\s/));
+
+        expect(parsed).to.deep.equal({
+            foo: 'bar',
+            bar: 'test'
+        });
+    });
+
+    it('should call defaultValue function with Parser context', function() {
+        var usage = 'Usage: test';
+        var parser = require('../')
+            .createParser({
+                '--foo -f': {
+                    type: 'string',
+                    defaultValue: function() {
+                        expect(this.getUsageString().indexOf(usage)).to.not.equal(-1);
+                        return 'bar';
+                    }
+                },
+                '--bar -b': {
+                    type: 'string'
+                }
+            })
+            .usage(usage);
+
+        var parsed = parser.parse('--bar test'.split(/\s/));
+
+        expect(parsed).to.deep.equal({
+            foo: 'bar',
+            bar: 'test'
+        });
+    });
+
     it('should allow default values use pseudo defaults', function() {
         var parser = require('../')
             .createParser({
