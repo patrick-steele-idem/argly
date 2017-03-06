@@ -80,7 +80,7 @@ var defaultTypeHandlers = {
     }
 };
 
-function handleDefaults(state, onError) {
+function handleDefaults(parser, state, onError) {
     state.options.getOptions().forEach(function(option) {
         var targetProperty = option.targetProperty;
         var defaultValue = option.defaultValue;
@@ -89,6 +89,10 @@ function handleDefaults(state, onError) {
         if (typeof state.result[targetProperty] !== 'undefined' ||
             typeof defaultValue === 'undefined') {
             return;
+        }
+
+        if (typeof defaultValue === 'function') {
+            defaultValue = defaultValue.call(parser);
         }
 
         var handler;
@@ -483,7 +487,7 @@ Parser.prototype = {
         }
 
         finishLastOption();
-        handleDefaults(state, onError);
+        handleDefaults(this, state, onError);
 
         // Run the validators
         try {
