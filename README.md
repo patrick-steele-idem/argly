@@ -33,7 +33,7 @@ require('argly').createParser({
 
 And the following command:
 ```bash
-node app.js --foo -b b
+node app.js --foo -b baz
 ```
 
 The output will be:
